@@ -99,7 +99,7 @@ func (values ValuesMap) buildGraph() FinalGraph {
 				continue
 			}
 			switch values.findRelation(Key(node1.Name), Key(node2.Name)) {
-			case IsEqualTo, LeftDerivedFromRight:
+			case IsEqualTo, RightDerivedFromLeft:
 				links = append(links, GraphLink{Source: index1, Target: index2})
 			}
 		}
