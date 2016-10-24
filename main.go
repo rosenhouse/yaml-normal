@@ -57,6 +57,32 @@ type FinalGraph struct {
 	Links []GraphLink `json:"links"`
 }
 
+func (values ValuesMap) removeLoners(nodes []GraphNode) []GraphNode {
+	nonLoner := make([]bool, len(nodes))
+
+	for index1, node1 := range nodes {
+		for index2, node2 := range nodes {
+			if index1 == index2 {
+				continue
+			}
+			switch values.findRelation(Key(node1.Name), Key(node2.Name)) {
+			case IsEqualTo, LeftDerivedFromRight, RightDerivedFromLeft:
+				nonLoner[index1] = true
+				nonLoner[index2] = true
+			}
+		}
+	}
+
+	var toReturn []GraphNode
+	for i, node := range nodes {
+		if nonLoner[i] {
+			toReturn = append(toReturn, node)
+		}
+	}
+
+	return toReturn
+}
+
 func (values ValuesMap) buildGraph() FinalGraph {
 	var nodes []GraphNode
 	var links []GraphLink
@@ -65,8 +91,13 @@ func (values ValuesMap) buildGraph() FinalGraph {
 		nodes = append(nodes, GraphNode{Name: string(key)})
 	}
 
+	nodes = values.removeLoners(nodes)
+
 	for index1, node1 := range nodes {
 		for index2, node2 := range nodes {
+			if index1 == index2 {
+				continue
+			}
 			switch values.findRelation(Key(node1.Name), Key(node2.Name)) {
 			case IsEqualTo, LeftDerivedFromRight:
 				links = append(links, GraphLink{Source: index1, Target: index2})
